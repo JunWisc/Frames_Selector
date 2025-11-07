@@ -1,9 +1,9 @@
 프로그램 작동 시 설치할 사항.
 1. Python 3.9+
    
-3. pip install opencv-python
+2. pip install opencv-python
    
-5. pip install opencv-python Pillow
+3. pip install opencv-python Pillow
 
 
 프레임 선택 도구 (GUI)
