@@ -4,7 +4,7 @@ from frame_selector import FrameSelectorApp
 
 # 사용자 환경 설정
 VIDEO_PATH = Path(r"your\video\path") # 비디오 위치 (+ 비디오 이름)
-OUTPUT_BASE = Path(r"Generated\frames\folder\locationc") # 생성될 frames 폴더 위치
+OUTPUT_BASE = Path(r"expected\created\frames\folder\location") # 생성될 frames 폴더 위치
 ZERO_PAD = 6 # 저장 프레임의 자릿 수 (ex. 000000.png)
 THUMB_SIZE = (860, 440) # 프레임 크기 설정.
 

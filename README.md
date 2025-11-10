@@ -24,6 +24,9 @@ run.py에서 경로를 본인 환경에 맞게 수정합니다.
 - OUTPUT_BASE : 프레임이 저장될 루트 폴더
 
 그리고 TERMINAL에
-: python run.py
+```bash
+python run.py
 
-
+python run.py를 하면 OUTPUT_BASE 에 작성된 주소와 폴더가 자동으로 생성됩니다.
+이때, 폴더 명은 비디오 이름과 같습니다.
+시간을 설정하고 확인을 누르면 생성된 폴더에 프레임들이 생성됩니다.

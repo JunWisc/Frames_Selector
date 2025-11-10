@@ -13,6 +13,7 @@ from video_to_frames import (
     get_video_meta, extract_frames_range
 )
 
+
 class FrameSelectorApp(tk.Tk):
     def __init__(self, video_path: Path, output_base: Path,
                  zero_pad: int = 6, start_index: int = 0,
@@ -531,7 +532,10 @@ class FrameSelectorApp(tk.Tk):
             i += 1
 
     def _copy_selected_to_dir(self, dest_dir: Path) -> list[Path]:
-        """선택 파일들을 dest_dir에 복사, 최종 목적지 경로 리스트 반환"""
+        """
+        선택 파일들을 dest_dir에 복사, 최종 목적지 경로 리스트 반환
+        - 실제로 유저가 선택한 최종 두 장만 지정한 폴더에 복사한다.
+        """
         saved_paths = []
         dest_dir.mkdir(parents=True, exist_ok=True)
         for src in self.selected_files[:2]:
@@ -540,6 +544,22 @@ class FrameSelectorApp(tk.Tk):
             shutil.copy2(str(src_path), str(target))
             saved_paths.append(target)
         return saved_paths
+
+    def _cleanup_frames_dir(self):
+        """
+        (정리용) frames/<video_name> 임시 프레임 폴더 전체 삭제.
+        - 선택/다운로드가 끝나면 더 이상 필요 없으므로 자동 정리해서
+          디스크/메모리 사용량을 줄인다.
+        """
+        try:
+            if self.output_dir.exists():
+                shutil.rmtree(self.output_dir)
+                info(f"cleanup: deleted frames directory: {self.output_dir}")
+            else:
+                info(f"cleanup: frames directory not found (skip): {self.output_dir}")
+        except Exception as e:
+            # 삭제에 실패해도 앱이 죽지 않도록 경고만 남김
+            warn(f"cleanup failed for {self.output_dir}: {e}")
 
     def _on_delete_selected(self):
         # (동작) 한 번 누르면 마지막(두 번째)만 제거, 다시 누르면 남은 한 장 제거
@@ -557,27 +577,40 @@ class FrameSelectorApp(tk.Tk):
         self._finish_selection()
 
     def _finish_selection(self):
+        """
+        (최종 동작)
+        - 선택된 2장의 이미지를 사용자가 지정한 폴더에 복사.
+        - 그 후 frames/<video_name> 임시 프레임 폴더와 내부 프레임들을 모두 삭제.
+        """
         chosen = self.selected_files[:2]
         info("selected files:")
         for p in chosen:
             info(f" - {p}")
 
-        dest = filedialog.askdirectory(title="저장할 폴더를 선택하세요")
-        if dest:
-            try:
-                dest_dir = Path(dest)
-                saved_paths = self._copy_selected_to_dir(dest_dir)
-                done("selection complete and saved.")
-                lines = "\n".join(str(p) for p in saved_paths)
-                messagebox.showinfo("저장 완료", f"다음 위치에 저장했습니다:\n{lines}")
-            except Exception as e:
-                error_msg = f"저장 중 오류: {e}"
-                warn(error_msg)
-                messagebox.showerror("오류", error_msg)
-        else:
-            done("selection complete (저장 경로 선택 취취).")
-            messagebox.showinfo("완료", "2장의 이미지를 선택했습니다.\n(저장 폴더 선택이 취소되었습니다.)")
+        try:
+            # (동작) 사용자에게 최종 저장할 폴더 선택 받기
+            dest = filedialog.askdirectory(title="저장할 폴더를 선택하세요")
+            if dest:
+                try:
+                    dest_dir = Path(dest)
+                    saved_paths = self._copy_selected_to_dir(dest_dir)
+                    done("selection complete and saved.")
+                    lines = "\n".join(str(p) for p in saved_paths)
+                    messagebox.showinfo("저장 완료", f"다음 위치에 저장했습니다:\n{lines}")
+                except Exception as e:
+                    # (오류 처리) 선택된 프레임 복사 중 문제 발생
+                    error_msg = f"저장 중 오류: {e}"
+                    warn(error_msg)
+                    messagebox.showerror("오류", error_msg)
+            else:
+                # (취소) 저장 폴더 선택을 취소한 경우에도 선택은 완료된 상태
+                done("selection complete (저장 경로 선택 취소).")
+                messagebox.showinfo("완료", "2장의 이미지를 선택했습니다.\n(저장 폴더 선택이 취소되었습니다.)")
+        finally:
+            # (중요) 선택/저장 절차가 끝나면 임시 프레임 폴더 자동 삭제
+            self._cleanup_frames_dir()
 
+        # (UI 종료) 앱 창 닫기
         self.destroy()
 
     # 상단 시간 다시 설정
