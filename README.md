@@ -26,6 +26,7 @@ run.py에서 경로를 본인 환경에 맞게 수정합니다.
 그리고 TERMINAL에
 ```bash
 python run.py
+'''
 
 python run.py를 하면 OUTPUT_BASE 에 작성된 주소와 폴더가 자동으로 생성됩니다.
 이때, 폴더 명은 비디오 이름과 같습니다.
